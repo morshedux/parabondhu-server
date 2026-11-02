@@ -24,13 +24,9 @@ router.get("/", async (req, res) => {
     filter.eventType = type;
   }
 
-  const max = Math.min(Math.max(Number(limit) || 60, 1), 60);
-  const events = await (await eventsCollection())
-    .find(filter)
-    .sort({ eventDate: 1 })
-    .limit(max)
-    .toArray();
-  res.json(events);
+  const cursor = (await eventsCollection()).find(filter).sort({ eventDate: 1 });
+  if (Number(limit) > 0) cursor.limit(Number(limit));
+  res.json(await cursor.toArray());
 });
 
 router.get("/mine", verifyToken, async (req, res) => {
@@ -133,6 +129,10 @@ router.post("/:id/join", verifyToken, async (req, res) => {
   try {
     await (await joinsCollection()).insertOne({
       eventId: id,
+      eventTitle: event.title,
+      eventType: event.eventType,
+      eventLocation: event.location,
+      eventDate: event.eventDate,
       userEmail: req.user!.email,
       userName: req.user!.name,
       joinedAt: new Date(),

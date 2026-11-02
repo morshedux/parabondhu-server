@@ -16,6 +16,10 @@ export interface EventDoc {
 export interface JoinDoc {
   _id?: ObjectId;
   eventId: ObjectId;
+  eventTitle: string;
+  eventType: string;
+  eventLocation: string;
+  eventDate: Date;
   userEmail: string;
   userName: string;
   joinedAt: Date;
