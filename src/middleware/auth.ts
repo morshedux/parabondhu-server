@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import type { createRemoteJWKSet } from "jose";
 
 export interface AuthUser {
   email: string;
@@ -16,11 +16,13 @@ declare global {
 
 let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 
-function getJwks() {
+// jose is ESM only, so this CommonJS build loads it with a dynamic import.
+async function verifyJwt(token: string) {
+  const { createRemoteJWKSet, jwtVerify } = await import("jose");
   if (!jwks) {
     jwks = createRemoteJWKSet(new URL("/api/auth/jwks", process.env.CLIENT_URL));
   }
-  return jwks;
+  return jwtVerify(token, jwks, { issuer: process.env.CLIENT_URL });
 }
 
 export async function verifyToken(req: Request, res: Response, next: NextFunction) {
@@ -31,9 +33,7 @@ export async function verifyToken(req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    const { payload } = await jwtVerify(header.slice(7), getJwks(), {
-      issuer: process.env.CLIENT_URL,
-    });
+    const { payload } = await verifyJwt(header.slice(7));
     if (typeof payload.email !== "string") throw new Error("Token has no email");
 
     req.user = {
