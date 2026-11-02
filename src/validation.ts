@@ -14,7 +14,13 @@ export const eventSchema = z.object({
   title: z.string().trim().min(5, "Title needs at least 5 characters.").max(100),
   description: z.string().trim().min(20, "Description needs at least 20 characters.").max(2000),
   eventType: z.enum(EVENT_TYPES, { message: "Choose an event type from the list." }),
-  thumbnail: z.url({ protocol: /^https?$/, message: "Thumbnail must be a valid image URL." }),
+  thumbnail: z.union(
+    [
+      z.url({ protocol: /^https?$/ }),
+      z.string().regex(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/).max(1_500_000),
+    ],
+    { message: "Thumbnail must be a valid image URL or an image under 1 MB." },
+  ),
   location: z.string().trim().min(3, "Location needs at least 3 characters.").max(150),
   eventDate: z.coerce
     .date({ message: "Enter a valid event date." })
