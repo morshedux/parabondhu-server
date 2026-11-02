@@ -8,8 +8,8 @@ const router = Router();
 
 const escapeRegex = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-function parseId(id: string) {
-  return ObjectId.isValid(id) ? new ObjectId(id) : null;
+function parseId(id: string | string[]) {
+  return typeof id === "string" && ObjectId.isValid(id) ? new ObjectId(id) : null;
 }
 
 router.get("/", async (req, res) => {
